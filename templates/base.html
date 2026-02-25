@@ -1,0 +1,162 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>
+        {% block title %}{% endblock %}
+    </title>
+    <link rel="stylesheet" href="{% static 'bootstrap-5.3.8-dist/css/bootstrap.min.css' %}">
+    <script src="{% static 'bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js' %}"></script>
+
+    <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/footer.css' %}">
+
+    {% block css %}
+    {% endblock %}
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .top-nav {
+            gap: 0.75rem;
+            flex-wrap: nowrap !important;
+        }
+
+        .nav-main .nav-link {
+            white-space: nowrap;
+        }
+
+        .nav-search-form {
+            width: 240px;
+            flex: 0 0 240px;
+        }
+
+        .nav-auth {
+            white-space: nowrap;
+        }
+
+        @media (max-width: 768px) {
+            .top-nav {
+                flex-wrap: wrap !important;
+                justify-content: center;
+            }
+
+            .nav-main {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .nav-search-form {
+                width: 100%;
+                flex: 1 1 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<header class="p-3 text-bg-light border-bottom">
+    <div class="container">
+        <div class="top-nav d-flex flex-wrap flex-lg-nowrap align-items-center justify-content-between">
+            <a href="/" class="d-flex align-items-center text-white text-decoration-none"></a>
+
+            <ul class="nav nav-main me-lg-auto mb-0">
+                <li>
+                    <a href="/"
+                       class="nav-link px-2 {% if request.path == '/' %}text-primary fw-semibold active{% else %}text-secondary{% endif %}">
+                        首页
+                    </a>
+                </li>
+                {% if request.user.is_authenticated and request.user.is_superuser %}
+                    <li>
+                        <a href="/article/pub/"
+                           class="nav-link px-2 {% if request.path == '/article/pub/' %}text-primary fw-semibold active{% else %}text-secondary{% endif %}">
+                            发布博客
+                        </a>
+                    </li>
+                {% endif %}
+                <li>
+                    <a href="/dashboard/"
+                       class="nav-link px-2 {% if request.path == '/dashboard/' %}text-primary fw-semibold active{% else %}text-secondary{% endif %}">
+                        数据分析
+                    </a>
+                </li>
+            </ul>
+
+            <form class="nav-search-form me-lg-3 mb-0" role="search" action="/" method="get">
+                <input type="search" name="q" value="{{ request.GET.q }}" class="form-control" placeholder="搜索..." aria-label="Search">
+            </form>
+
+            <div class="text-end nav-auth">
+                {% if request.user.is_authenticated %}
+                    <div class="d-flex align-items-center gap-2">
+                        <img
+                                src="{{ request.user.avatar.url }}"
+                                alt="用户头像"
+                                class="rounded-circle"
+                                width="30"
+                                height="30"
+                        >
+
+                        <div class="dropdown">
+                            <button class="btn btn-primary dropdown-toggle" type="button"
+                                    id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                {{ request.user.username }}
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                <li><a class="dropdown-item" href="/profile/">个人中心</a></li>
+                                <li><a class="dropdown-item" id="logoutBtn">退出登录</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                {% else %}
+                    <a href="/login/" class="btn btn-primary me-2">登录</a>
+                    <a href="/register/" class="btn btn-outline-primary">注册</a>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="container py-5">
+    {% block main %}
+    {% endblock %}
+</main>
+
+<footer class="site-footer mt-auto">
+    <div class="bg-gradient text-white py-4">
+        <div class="container">
+            <div class="text-center">
+                湘ICP备2022002226号-1
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script src="{% static 'js/jquery-3.7.1.min.js' %}"></script>
+<script>
+    $("#logoutBtn").click(function () {
+        $.ajax({
+            url: '/logout/',
+            type: 'POST',
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function (res) {
+                if (res.code === 200) {
+                    alert(res.msg)
+                    window.location.href = '/'
+                } else {
+                    alert(res.msg)
+                }
+            }
+        })
+    })
+</script>
+{% block js %}
+
+{% endblock %}
+
+</body>
+</html>

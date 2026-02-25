@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>首页</title>
+    <link rel="stylesheet" href="{% static 'bootstrap-5.3.8-dist/css/bootstrap.min.css' %}">
+    <!-- bootstrap.bundle.js 包含了 Popper.js和 bootstrap.js -->
+    <script src="{% static 'bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/article_detail.css' %}">
+    <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/footer.css' %}">
+
+</head>
+<body>
+<!-- 导航栏（保持不变） -->
+<header class="p-3 text-bg-light border-bottom mb-3">
+    <div class="container">
+        <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
+            <a href="/" class="d-flex align-items-center mb-2 mb-lg-0 text-white text-decoration-none">
+
+            </a>
+
+            <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
+                <li><a href="#" class="nav-link px-2 text-secondary">首页</a></li>
+                <li><a href="#" class="nav-link px-2 text-secondary">发布博客</a></li>
+            </ul>
+
+            <form class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3" role="search">
+                <input type="search" class="form-control" placeholder="搜索..." aria-label="Search">
+            </form>
+
+            <div class="text-end">
+                <button type="button" class="btn btn-primary me-2">登录</button>
+                <button type="button" class="btn btn-outline-primary">注册</button>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- 主内容区域 -->
+<main class="container">
+    <div class="article-container p-4 mb-4">
+        <!-- 文章标题区域 -->
+        <div class="text-center mb-4">
+            <h1 class="article-title mb-3">Django课程详情</h1>
+        </div>
+        
+        <!-- 作者信息区域 -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="author-info">
+                <img src="{% static 'image/head.png' %}" alt="用户头像" class="rounded-circle author-avatar">
+                <div>
+                    <span class="fw-semibold">彬彬</span>
+                </div>
+            </div>
+            <div class="text-end">
+                <span class="text-muted small">发布于</span>
+                <span class="fw-medium">2024年1月1日 12:00</span>
+            </div>
+        </div>
+        
+        <hr class="my-4">
+        
+        <!-- 文章内容 -->
+        <div class="article-content mb-5">
+            <p>
+                Django是一个基于Python的开源Web应用框架，由经验丰富的开发人员团队创建，用于快速开发安全的网站。
+                它采用了MVC（模型-视图-控制器）架构模式，提供了强大的功能和可扩展性，使开发人员能够快速构建复杂的Web应用程序。
+            </p>
+            <p class="mt-3">
+                Django遵循"不要重复自己"(DRY)的原则，强调代码复用，并提供了许多内置功能，如用户认证、内容管理、站点地图等，
+                这些都极大地加快了开发速度。同时，Django的安全性也非常出色，能够帮助开发者避免许多常见的安全错误。
+            </p>
+        </div>
+        
+        <!-- 评论表单 -->
+        <div class="pub-comment mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0 fw-semibold">评论(0)</h5>
+                <span class="text-muted small">文明上网，理性发言</span>
+            </div>
+            
+            <form action="" method="post">
+                <div class="mb-3">
+                    <textarea class="form-control" rows="4" placeholder="请输入您的评论..."></textarea>
+                </div>
+                <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn btn-primary px-4">提交评论</button>
+                </div>
+            </form>
+        </div>
+        
+        <hr class="my-4">
+        
+        <!-- 评论列表 -->
+        <div class="comment">
+            <h5 class="mb-4 fw-semibold">评论列表</h5>
+            
+            <div class="comment-list">
+                <!-- 评论项1 -->
+                <div class="comment-item p-3 rounded mb-3 border">
+                    <div class="d-flex align-items-start">
+                        <img src="{% static 'image/head.png' %}" alt="用户头像" class="rounded-circle comment-avatar me-3">
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <span class="fw-semibold me-2">彬彬</span>
+                                    <span class="badge bg-light text-dark">作者</span>
+                                </div>
+                                <div class="text-muted small">2024年1月1日 12:00</div>
+                            </div>
+                            <p class="mb-0">这是一条评论内容，Django框架确实非常强大，尤其是在快速开发方面表现优异。</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 评论项2 -->
+                <div class="comment-item p-3 rounded mb-3 border">
+                    <div class="d-flex align-items-start">
+                        <img src="{% static 'image/head.png' %}" alt="用户头像" class="rounded-circle comment-avatar me-3">
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <span class="fw-semibold me-2">张三</span>
+                                </div>
+                                <div class="text-muted small">2024年1月1日 13:20</div>
+                            </div>
+                            <p class="mb-0">感谢分享！Django的ORM让我从繁琐的SQL中解脱出来，大大提高了开发效率。</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 评论项3 -->
+                <div class="comment-item p-3 rounded border">
+                    <div class="d-flex align-items-start">
+                        <img src="{% static 'image/head.png' %}" alt="用户头像" class="rounded-circle comment-avatar me-3">
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <span class="fw-semibold me-2">李四</span>
+                                </div>
+                                <div class="text-muted small">2024年1月1日 15:45</div>
+                            </div>
+                            <p class="mb-0">请问Django REST framework在构建API方面有什么优势？有没有推荐的教程？</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 查看更多评论 -->
+            <div class="text-center mt-4">
+                <a href="#" class="text-decoration-none">
+                    <span class="text-muted small">查看更多评论</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down ms-1" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </div>
+</main>
+
+
+<!-- 底部备案信息和联系方式 -->
+<footer class="site-footer mt-auto">
+    <div class="bg-gradient text-white py-4">
+        <div class="container">
+            <!-- 备案信息和版权 -->
+            <div class="text-center">
+                    湘ICP备2022002226号-1
+            </div>
+        </div>
+    </div>
+</footer>
+</body>
+</html>

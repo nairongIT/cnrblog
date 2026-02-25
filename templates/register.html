@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+{% block title %}注册{% endblock %}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+{% endblock %}
+
+
+
+{% block main %}
+    <div class="login-container">
+        <div class="login-card p-4 bg-white">
+            <h2 class="text-center mb-4">注册</h2>
+
+            <form id="registerForm">
+                {% csrf_token %}
+
+                <!-- 账号 -->
+                <div class="mb-3">
+                    <label for="username" class="form-label">账号</label> <span class="text-danger"
+                                                                                id="usernameError"></span>
+
+                    <input type="text" class="form-control" id="username" name="username" placeholder="请输入账号"
+                           required>
+                </div>
+                <!-- 邮箱 -->
+                <div class="mb-3">
+                    <label for="email" class="form-label">邮箱</label> <span class="text-danger" id="emailError"></span>
+                    <input type="email" class="form-control" id="email" name="email" placeholder="请输入邮箱"
+                           required>
+
+                </div>
+
+                <!-- 验证码,右侧有一个获取验证码按钮 -->
+                <div class="mb-3">
+                    <label for="captcha" class="form-label">验证码</label> <span class="text-danger"
+                                                                                 id="captchaError"></span>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="captcha" name="captcha" placeholder="请输入验证码"
+                               required>
+                        <button id="get_captcha" type="button" class="btn btn-outline-primary ">获取验证码</button>
+                    </div>
+
+                </div>
+                <!-- 密码输入 -->
+                <div class="mb-3">
+                    <label for="password" class="form-label">密码</label> <span class="text-danger"
+                                                                                id="passwordError"></span>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="请输入密码"
+                           required>
+                </div>
+
+                <!-- 确认密码 -->
+                <div class="mb-3">
+                    <label for="re_password" class="form-label">确认密码</label> <span class="text-danger"
+                                                                                       id="re_passwordError"></span>
+                    <input type="password" class="form-control" id="re_password" name="re_password"
+                           placeholder="请确认密码"
+                           required>
+                </div>
+
+                <!-- 注册按钮 -->
+                <div class="d-grid gap-2">
+                    <button id="registerBtn" type="button" class="btn btn-primary btn-lg btn-login">注册</button>
+                </div>
+
+                <!-- 已经有账号了？去登录 -->
+                <div class="text-center mt-3">
+                    <span>已经有账号了？</span>
+                    <a href="/login/" class="text-decoration-none">去登录</a>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+
+{% block js %}
+    <script src="{% static 'bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js' %}"></script>
+
+    <script>
+        // 点击获取验证码按钮，发送ajax请求，获取验证码
+        $(function () {
+            $("#get_captcha").on("click", function () {
+                let $btn = $(this);
+                let email = $("#email").val();   // 你 input 有 id="email"，直接用它更清晰
+
+                if (!email) {
+                    alert("请输入邮箱");
+                    return;
+                }
+
+                // 禁用按钮，防止重复点击
+                $btn.prop("disabled", true);
+
+                // 发送ajax请求
+                $.ajax({
+                    url: "/send_email_captcha/",
+                    method: "GET",
+                    data: {
+                        email: email
+                    },
+                    success: function (result) {
+                        if (result['code'] === 200) {
+                            console.log(result)
+                        } else {
+                            alert(result['msg'])
+                        }
+                    },
+                    fail: function (error) {
+                        console.log(error)
+                    }
+                })
+
+                let countdown = 30;
+                $btn.text(countdown + "s");
+
+                let timer = setInterval(function () {
+                    countdown--;
+
+                    if (countdown <= 0) {
+                        clearInterval(timer);
+                        $btn.text("获取验证码");
+                        $btn.prop("disabled", false);
+                    } else {
+                        $btn.text(countdown + "s");
+                    }
+                }, 1000);
+            });
+        });
+
+        // 注册
+        $(function () {
+            // 获取按钮
+            let btn = $("#registerBtn");
+            btn.click(function () {
+                // 获取表单中的的所有表单数据
+                let formData = $("#registerForm").serializeArray() // 没有获取到值
+                // 发送ajax请求
+                $.ajax({
+                    url: "/register/",
+                    method: "POST",
+                    data: formData,
+                    success: function (result) {
+                        // 清除所有错误提示框
+                        $("#registerForm .text-danger").text("");
+                        console.log(result)
+                        if (result['code'] === 200) {
+                            alert('注册成功!')
+                            location.href = "/login/"
+                        } else {
+                            // 添加到错误提示框,对应key到对应的错误提示框
+                            // 遍历result['msg']，将每个错误添加到对应的错误提示框
+                            for (let key in result['msg']) {
+                                $("#" + key + "Error").text(result['msg'][key][0]);
+                            }
+                        }
+                    },
+                    fail: function (error) {
+                        alert(error)
+                    }
+                })
+            })
+        });
+    </script>
+    
+{#    js校验表单#}
+    <script>
+        
+    </script>
+{% endblock %}

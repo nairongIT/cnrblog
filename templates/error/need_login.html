@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    请先登录 - 乃荣博客
+{% endblock %}
+
+{% block main %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4 p-md-5 text-center">
+                    <div class="mb-3">
+                    </div>
+
+                    <h3 class="mb-2">请先登录</h3>
+                    <p class="text-muted mb-4">
+                        你当前没有登录或登录已失效，无法访问该页面。
+                    </p>
+
+                    {# 可选：如果你在 view 里传了 message，比如 “登录校验失败” #}
+                    {% if message %}
+                        <div class="alert alert-warning py-2" role="alert">
+                            <p>请先登录，才能访问该页面。</p>
+                        </div>
+                    {% endif %}
+
+                    <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mt-4">
+                        {# 按你的路由名称修改：login / index #}
+                        <a href="{% url 'login' %}" class="btn btn-primary px-4">
+                            去登录
+                        </a>
+                        <a href="{% url 'index' %}" class="btn btn-outline-secondary px-4">
+                            返回首页
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

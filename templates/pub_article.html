@@ -1,0 +1,233 @@
+﻿{% extends 'base.html' %}
+
+{% block title %}发布文章{% endblock %}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'editor.md-1.5.0/css/editormd.min.css' %}">
+    <style>
+        .form-label { font-weight: 600; }
+    </style>
+{% endblock %}
+
+{% block main %}
+    <h1>发布博客</h1>
+    <hr>
+
+    <form id="blogForm" novalidate>
+        {% csrf_token %}
+
+        <div class="mb-4">
+            <label for="title" class="form-label">标题</label>
+            <input type="text" name="title" id="title" class="form-control" required>
+        </div>
+
+        <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <label class="form-label mb-0">标签</label>
+                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addTagModal">
+                    添加标签
+                </button>
+            </div>
+            <div id="tagContainer">
+                {% for tag in tags %}
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="tag_{{ tag.id }}" name="tags" value="{{ tag.pk }}">
+                        <label class="form-check-label" for="tag_{{ tag.id }}">{{ tag.name }}</label>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <label for="content" class="form-label">内容</label>
+            <div class="mb-2">
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="uploadImageBtn">上传图片</button>
+                <input type="file" id="imageFileInput" accept=".jpg,.jpeg,.png,.gif,.webp" style="display:none;">
+            </div>
+            <div id="editor-container">
+                <textarea id="content" name="content" style="display:none;"></textarea>
+            </div>
+        </div>
+
+        <button type="button" class="btn btn-primary" id="submitBtn">发布</button>
+        <span id="titleError" style="color: red"></span>
+    </form>
+
+    <div class="modal fade" id="addTagModal" tabindex="-1" aria-labelledby="addTagModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addTagModalLabel">添加标签</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" id="newTagName" class="form-control" maxlength="32" placeholder="请输入标签名">
+                    <div class="text-danger small mt-2" id="newTagError"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="addTagConfirmBtn">添加</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script src="{% static 'editor.md-1.5.0/editormd.min.js' %}"></script>
+    <script>
+        $(function () {
+            // 统一给 jQuery AJAX 请求添加 CSRF 头，editor.md 上传也会继承
+            $.ajaxSetup({
+                headers: {
+                    "X-CSRFToken": $("[name='csrfmiddlewaretoken']").val()
+                }
+            });
+
+            var editor = editormd("editor-container", {
+                width: "100%",
+                height: 400,
+                path: "{% static 'editor.md-1.5.0/lib/' %}",
+                placeholder: "开始撰写博客内容...",
+                // 只保留：表格
+                toolbarIcons: ["table"],
+                toolbar: true,
+                saveHTMLToTextarea: true
+            });
+
+            $("#uploadImageBtn").on("click", function () {
+                $("#imageFileInput").click();
+            });
+
+            $("#imageFileInput").on("change", function () {
+                var file = this.files && this.files[0];
+                if (!file) {
+                    return;
+                }
+                var uploadData = new FormData();
+                uploadData.append("editormd-image-file", file);
+
+                $.ajax({
+                    url: "{% url 'upload_article_image' %}",
+                    type: "POST",
+                    data: uploadData,
+                    processData: false,
+                    contentType: false,
+                    success: function (res) {
+                        if (res && res.success === 1 && res.url) {
+                            var currentMd = editor.getMarkdown() || "";
+                            var appendMd = "\n![](" + res.url + ")\n";
+                            editor.setMarkdown(currentMd + appendMd);
+                            alert("图片上传成功，已插入正文末尾");
+                        } else {
+                            alert((res && res.message) || "图片上传失败");
+                        }
+                    },
+                    error: function () {
+                        alert("图片上传失败，请稍后重试");
+                    },
+                    complete: function () {
+                        $("#imageFileInput").val("");
+                    }
+                });
+            });
+
+            var maxTags = 3;
+            $('input[name="tags"]').change(function () {
+                var checked = $('input[name="tags"]:checked').length;
+                if (checked > maxTags) {
+                    alert('最多只能选择 ' + maxTags + ' 个标签');
+                    this.checked = false;
+                }
+            });
+
+            var addTagModalEl = document.getElementById('addTagModal');
+            var addTagModal = new bootstrap.Modal(addTagModalEl);
+            $("#addTagConfirmBtn").on("click", function () {
+                var tagName = $("#newTagName").val().trim();
+                $("#newTagError").text("");
+                if (!tagName) {
+                    $("#newTagError").text("请输入标签名");
+                    return;
+                }
+
+                $.ajax({
+                    url: "{% url 'create_tag' %}",
+                    type: "POST",
+                    data: {
+                        name: tagName,
+                        csrfmiddlewaretoken: $("[name='csrfmiddlewaretoken']").val()
+                    },
+                    success: function (res) {
+                        if (res.code === 200 && res.data) {
+                            var tagId = res.data.id;
+                            var safeName = $("<div>").text(res.data.name).html();
+                            var html = '' +
+                                '<div class="form-check form-check-inline">' +
+                                '<input class="form-check-input" type="checkbox" id="tag_' + tagId + '" name="tags" value="' + tagId + '" checked>' +
+                                '<label class="form-check-label" for="tag_' + tagId + '">' + safeName + '</label>' +
+                                '</div>';
+                            $("#tagContainer").append(html);
+                            $("#newTagName").val("");
+                            addTagModal.hide();
+                        } else {
+                            $("#newTagError").text(res.msg || "添加失败");
+                        }
+                    },
+                    error: function () {
+                        $("#newTagError").text("添加失败，请稍后重试");
+                    }
+                });
+            });
+
+            addTagModalEl.addEventListener("hidden.bs.modal", function () {
+                $("#newTagName").val("");
+                $("#newTagError").text("");
+            });
+
+            $("#submitBtn").click(function () {
+                var title = $("#title").val().trim();
+                var content = editor.getMarkdown().trim();
+                var csrfmiddlewaretoken = $("[name='csrfmiddlewaretoken']").val();
+
+                if (!title) {
+                    alert('请输入文章标题');
+                    return;
+                }
+                if (!content) {
+                    alert('请输入文章内容');
+                    return;
+                }
+                if ($('input[name="tags"]:checked').length === 0) {
+                    alert('请至少选择一个标签');
+                    return;
+                }
+
+                var formData = new FormData();
+                formData.append('title', title);
+                formData.append('content', content);
+                formData.append('csrfmiddlewaretoken', csrfmiddlewaretoken);
+                $('input[name="tags"]:checked').each(function () {
+                    formData.append('tags', $(this).val());
+                });
+
+                $.ajax({
+                    url: "/article/pub/",
+                    type: "POST",
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (res) {
+                        if (res.code === 200) {
+                            alert("发布成功");
+                            location.href = "/";
+                        } else {
+                            var firstError = Object.values(res.msg)[0][0];
+                            $("#titleError").text(firstError);
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}

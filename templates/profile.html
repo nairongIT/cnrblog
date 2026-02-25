@@ -1,0 +1,147 @@
+﻿{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    个人中心
+{% endblock %}
+
+{% block main %}
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    {% if request.user.avatar %}
+                        <img src="{{ request.user.avatar.url }}" alt="头像" class="rounded-circle mb-3" width="80" height="80">
+                    {% else %}
+                        <img src="{% static 'image/head.png' %}" alt="头像" class="rounded-circle mb-3" width="80" height="80">
+                    {% endif %}
+                    <h5 class="mb-1">{{ request.user.username }}</h5>
+                    <div class="text-muted small">{{ request.user.email }}</div>
+                    <div class="text-muted small mt-2">注册时间：{{ request.user.date_joined|date:"Y-m-d" }}</div>
+
+                    <form method="post" enctype="multipart/form-data" class="mt-3 text-start">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="avatar">
+                        <label class="form-label small text-muted">更换头像</label>
+                        <div class="input-group input-group-sm">
+                            <input type="file" class="form-control" name="avatar" accept=".jpg,.jpeg,.png,.gif,.webp" required>
+                            <button type="submit" class="btn btn-primary">上传</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mt-3">
+                <div class="card-body">
+                    <h6 class="mb-3">我的数据</h6>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">文章数</span>
+                        <strong>{{ my_article_total }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">总浏览</span>
+                        <strong>{{ my_read_total }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">总评论</span>
+                        <strong>{{ my_comment_total }}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mt-3">
+                <div class="card-body">
+                    <h6 class="mb-3">标签管理</h6>
+                    {% if request.user.is_superuser %}
+                        <form method="post" class="mb-3">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="tag_add">
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control" name="tag_name" maxlength="32" placeholder="输入新标签名" required>
+                                <button type="submit" class="btn btn-outline-primary">新增</button>
+                            </div>
+                        </form>
+                    {% else %}
+                        <div class="small text-muted mb-3">仅站长可管理标签</div>
+                    {% endif %}
+
+                    <div>
+                        {% for tag in all_tags %}
+                            <div class="d-flex justify-content-between align-items-center border rounded px-2 py-1 mb-2">
+                                <div class="small">
+                                    {{ tag.name }}
+                                    <span class="text-muted">({{ tag.article_total }})</span>
+                                </div>
+                                {% if request.user.is_superuser %}
+                                    <form method="post" onsubmit="return confirm('确认删除该标签吗？');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="tag_delete">
+                                        <input type="hidden" name="tag_id" value="{{ tag.id }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">删除</button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        {% empty %}
+                            <div class="small text-muted">暂无标签</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    {% if profile_success %}
+                        <div class="alert alert-success py-2">{{ profile_success }}</div>
+                    {% endif %}
+                    {% if profile_error %}
+                        <div class="alert alert-danger py-2">{{ profile_error }}</div>
+                    {% endif %}
+
+                    <div class="mb-4">
+                        <h5 class="mb-3">互动通知</h5>
+                        {% for notice in notification_queryset %}
+                            <div class="border rounded p-2 mb-2">
+                                <div class="small">
+                                    <strong>{{ notice.user.username }}</strong>
+                                    {% if notice.parent and notice.parent.user_id == request.user.id %}
+                                        回复了你的评论：
+                                    {% else %}
+                                        评论了你的文章：
+                                    {% endif %}
+                                    <a href="/article/{{ notice.article.id }}/" class="text-decoration-none">{{ notice.article.title }}</a>
+                                </div>
+                                <div class="small text-muted mt-1">{{ notice.create_time|date:"Y-m-d H:i" }}</div>
+                            </div>
+                        {% empty %}
+                            <div class="alert alert-light border py-2 mb-0">暂无新的评论或回复</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">我的文章</h5>
+                        <a href="/article/pub/" class="btn btn-sm btn-primary">写新文章</a>
+                    </div>
+
+                    {% for article in my_articles %}
+                        <div class="border rounded p-3 mb-3">
+                            <div class="d-flex justify-content-between align-items-start gap-2">
+                                <div>
+                                    <a href="/article/{{ article.id }}/" class="fw-semibold text-decoration-none">{{ article.title }}</a>
+                                    <div class="small text-muted mt-1">{{ article.create_time|date:"Y-m-d H:i" }}</div>
+                                </div>
+                                <div class="small text-muted text-end">
+                                    <div>浏览 {{ article.read_count }}</div>
+                                    <div>评论 {{ article.comment_count }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="alert alert-light border mb-0">你还没有发布文章，去写第一篇吧。</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

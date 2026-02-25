@@ -1,0 +1,266 @@
+﻿{% extends 'base.html' %}
+
+{% block title %}
+    {{ article.title }}
+{% endblock %}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'css/article_detail.css' %}">
+    <style>
+        /* Markdown 代码块与行内代码的灰色背景样式 */
+        #article-markdown-view pre {
+            background: #f3f4f6;
+            border-radius: 8px;
+            padding: 12px;
+            overflow-x: auto;
+        }
+
+        #article-markdown-view code {
+            background: #f3f4f6;
+            border-radius: 4px;
+            padding: 0.1rem 0.35rem;
+        }
+
+        #article-markdown-view pre code {
+            background: transparent;
+            padding: 0;
+        }
+    </style>
+{% endblock %}
+
+{% block main %}
+    <div class="article-container p-4 mb-4">
+        <div class="text-center mb-4">
+            <h1 class="article-title mb-3">{{ article.title }}</h1>
+            {% if request.user.is_authenticated and request.user.is_superuser and request.user.id == article.user.id %}
+                <div class="d-flex justify-content-center align-items-center gap-2">
+                    <a href="/article/{{ article.id }}/edit/" class="btn btn-sm btn-outline-primary px-3">编辑文章</a>
+                    <form method="post" class="m-0" action="/article/{{ article.id }}/delete/" onsubmit="return confirm('确认删除这篇文章吗？');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-danger px-3">删除文章</button>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="author-info d-flex align-items-center gap-2">
+                {% if article.user.avatar %}
+                    <img src="{{ article.user.avatar.url }}" alt="用户头像" class="rounded-circle author-avatar" width="40" height="40">
+                {% else %}
+                    <img src="{% static 'image/head.png' %}" alt="用户头像" class="rounded-circle author-avatar" width="40" height="40">
+                {% endif %}
+                <div>
+                    <span class="fw-semibold">{{ article.user.username }}</span>
+                </div>
+            </div>
+            <div class="text-end">
+                <div class="text-muted small">发布时间：{{ article.create_time|date:"Y-m-d H:i" }}</div>
+                <div class="text-muted small">阅读：{{ article.read_count }} | 评论：{{ article.comment_count }}</div>
+            </div>
+        </div>
+
+        {% if article.tags.all %}
+            <div class="mb-4">
+                {% for tag in article.tags.all %}
+                    <span class="badge text-bg-light border me-1">{{ tag.name }}</span>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <hr class="my-4">
+
+        <div class="article-content mb-5">
+            {# 存放原始 Markdown 文本，前端 JS 会读取它并渲染成 HTML #}
+            <div id="article-markdown-source" style="display:none;">{{ article.content }}</div>
+            {# 渲染后的 HTML 输出容器 #}
+            <div id="article-markdown-view"></div>
+        </div>
+
+        <hr class="my-4">
+
+        <div class="comment">
+            <h5 class="mb-3 fw-semibold">发表评论</h5>
+            <form method="post" class="mb-4">
+                {% csrf_token %}
+                <input type="hidden" name="parent_id" id="parentIdInput" value="{{ request.POST.parent_id }}">
+                <div class="small text-muted mb-2" id="replyTargetText"></div>
+                {% if not request.user.is_authenticated %}
+                    <div class="mb-2">
+                        <input type="text" name="guest_name" class="form-control" maxlength="20" placeholder="请输入你的昵称" value="{{ request.POST.guest_name }}" required>
+                    </div>
+                {% endif %}
+                <div class="mb-2">
+                    <textarea name="content" class="form-control" rows="4" placeholder="写下你的评论..." required>{{ request.POST.content }}</textarea>
+                </div>
+                {% if comment_error %}
+                    <div class="text-danger small mb-2">{{ comment_error }}</div>
+                {% endif %}
+                <button type="submit" class="btn btn-primary btn-sm">发布评论</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="cancelReplyBtn" style="display:none;">取消回复</button>
+            </form>
+
+            <h5 class="mb-4 fw-semibold">评论列表 ({{ comment_queryset|length }})</h5>
+
+            {% if root_comment_items %}
+                <div class="comment-list">
+                    {% for item in root_comment_items %}
+                        <div class="comment-item p-3 rounded mb-3 border" id="comment-{{ item.root.id }}">
+                            <div class="d-flex align-items-start">
+                                {% if item.root.user and item.root.user.avatar %}
+                                    <img src="{{ item.root.user.avatar.url }}" alt="用户头像" class="rounded-circle comment-avatar me-3" width="36" height="36">
+                                {% else %}
+                                    <img src="{% static 'image/head.png' %}" alt="用户头像" class="rounded-circle comment-avatar me-3" width="36" height="36">
+                                {% endif %}
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <span class="fw-semibold me-2">{{ item.root.user.first_name|default:item.root.user.username }}</span>
+                                        </div>
+                                        <div class="text-muted small">{{ item.root.create_time|date:"Y-m-d H:i" }}</div>
+                                    </div>
+                                    <p class="mb-0">{{ item.root.content }}</p>
+                                    <div class="mt-2">
+                                        <a href="javascript:void(0);" class="small text-decoration-none reply-btn"
+                                           data-comment-id="{{ item.root.id }}"
+                                           data-comment-username="{{ item.root.user.first_name|default:item.root.user.username }}">回复</a>
+                                    </div>
+
+                                    {% if item.replies %}
+                                        <div class="mt-2">
+                                            <button class="btn btn-link btn-sm px-0 text-decoration-none"
+                                                    type="button"
+                                                    data-bs-toggle="collapse"
+                                                    data-bs-target="#replies-{{ item.root.id }}"
+                                                    aria-expanded="false"
+                                                    aria-controls="replies-{{ item.root.id }}">
+                                                展开回复 ({{ item.replies|length }})
+                                            </button>
+                                        </div>
+                                        <div class="collapse mt-2" id="replies-{{ item.root.id }}">
+                                            {% for reply in item.replies %}
+                                                <div class="border rounded p-2 mb-2 bg-light">
+                                                    <div class="d-flex justify-content-between align-items-start mb-1">
+                                                        <div>
+                                                            <span class="fw-semibold me-2">{{ reply.user.first_name|default:reply.user.username }}</span>
+                                                            {% if reply.parent %}
+                                                                <span class="text-muted small">回复 {{ reply.parent.user.first_name|default:reply.parent.user.username }}</span>
+                                                            {% endif %}
+                                                        </div>
+                                                        <div class="text-muted small">{{ reply.create_time|date:"Y-m-d H:i" }}</div>
+                                                    </div>
+                                                    <p class="mb-1">{{ reply.content }}</p>
+                                                    <a href="javascript:void(0);" class="small text-decoration-none reply-btn"
+                                                       data-comment-id="{{ reply.id }}"
+                                                       data-comment-username="{{ reply.user.first_name|default:reply.user.username }}">回复</a>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-light border">暂无评论</div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    {# marked：轻量 Markdown 解析库 #}
+    <script src="{% static 'editor.md-1.5.0/lib/marked.min.js' %}"></script>
+    <script src="{% static 'bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js' %}"></script>
+    <script>
+        // 基础 HTML 清洗：移除危险标签、事件属性与 javascript: 协议
+        function sanitizeHtml(html) {
+            var parser = new DOMParser();
+            var doc = parser.parseFromString(html, "text/html");
+
+            var blockedTags = ["script", "iframe", "object", "embed", "link", "meta", "style", "form"];
+            blockedTags.forEach(function (tag) {
+                doc.querySelectorAll(tag).forEach(function (node) {
+                    node.remove();
+                });
+            });
+
+            doc.querySelectorAll("*").forEach(function (el) {
+                Array.from(el.attributes).forEach(function (attr) {
+                    var name = attr.name.toLowerCase();
+                    var value = (attr.value || "").trim().toLowerCase();
+                    if (name.indexOf("on") === 0) {
+                        el.removeAttribute(attr.name);
+                        return;
+                    }
+                    if ((name === "href" || name === "src") && value.indexOf("javascript:") === 0) {
+                        el.removeAttribute(attr.name);
+                    }
+                });
+            });
+
+            return doc.body.innerHTML;
+        }
+
+        $(function () {
+            // 从隐藏容器读取 Markdown 原文
+            var source = $("#article-markdown-source").text();
+
+            // 空内容直接给出提示，避免页面空白
+            if (!source || !source.trim()) {
+                $("#article-markdown-view").html('<div class="alert alert-light border">暂无正文内容</div>');
+                return;
+            }
+
+            try {
+                // 优先使用 marked.parse 转 HTML
+                if (window.marked && typeof window.marked.parse === "function") {
+                    var parsedHtml = window.marked.parse(source);
+                    $("#article-markdown-view").html(sanitizeHtml(parsedHtml));
+                } else {
+                    // marked 不可用时回退纯文本显示
+                    $("#article-markdown-view").text(source);
+                }
+            } catch (e) {
+                // 任意解析异常都回退纯文本，保证内容可见
+                $("#article-markdown-view").text(source);
+            }
+        });
+
+        $(function () {
+            var parentIdInput = $("#parentIdInput");
+            var replyTargetText = $("#replyTargetText");
+            var cancelReplyBtn = $("#cancelReplyBtn");
+
+            function syncReplyState() {
+                var parentId = parentIdInput.val();
+                if (parentId) {
+                    cancelReplyBtn.show();
+                    if (!replyTargetText.text()) {
+                        replyTargetText.text("当前为回复评论模式");
+                    }
+                } else {
+                    replyTargetText.text("");
+                    cancelReplyBtn.hide();
+                }
+            }
+
+            $(".reply-btn").on("click", function () {
+                var commentId = $(this).data("comment-id");
+                var username = $(this).data("comment-username");
+                parentIdInput.val(commentId);
+                replyTargetText.text("正在回复 @" + username);
+                syncReplyState();
+                $('textarea[name="content"]').focus();
+            });
+
+            cancelReplyBtn.on("click", function () {
+                parentIdInput.val("");
+                syncReplyState();
+            });
+
+            syncReplyState();
+        });
+    </script>
+{% endblock %}

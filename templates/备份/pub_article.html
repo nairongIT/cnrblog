@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>发布博客 - 技术博客</title>
+    <link rel="stylesheet" href="{% static 'bootstrap-5.3.8-dist/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/editor.md@1.5.0/css/editormd.min.css">
+        <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/footer.css' %}">
+    <style>
+        .form-label {
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+<!-- 导航栏 -->
+<header class="p-3 text-bg-light border-bottom">
+    <div class="container">
+        <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
+            <a href="/" class="d-flex align-items-center mb-2 mb-lg-0 text-white text-decoration-none"></a>
+
+            <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
+                <li><a href="#" class="nav-link px-2 text-secondary">首页</a></li>
+                <li><a href="#" class="nav-link px-2 text-secondary">发布博客</a></li>
+            </ul>
+
+            <form class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3" role="search">
+                <input type="search" class="form-control" placeholder="搜索..." aria-label="Search">
+            </form>
+
+            <div class="text-end">
+                <button type="button" class="btn btn-primary me-2">登录</button>
+                <button type="button" class="btn btn-outline-primary">注册</button>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="container py-4">
+    <h1>发布博客</h1>
+    <hr>
+    
+    <form id="blogForm" method="post" action="">
+        {% csrf_token %}
+        
+        <!-- 标题 -->
+        <div class="mb-4">
+            <label for="title" class="form-label">标题</label>
+            <input type="text" name="title" id="title" class="form-control" required>
+        </div>
+        
+        <!-- 标签 -->
+        <div class="mb-4">
+            <label class="form-label">标签</label>
+            <div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="tag_python" name="tags" value="python">
+                    <label class="form-check-label" for="tag_python">Python</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="tag_django" name="tags" value="django">
+                    <label class="form-check-label" for="tag_django">Django</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="tag_flask" name="tags" value="flask">
+                    <label class="form-check-label" for="tag_flask">Flask</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="tag_js" name="tags" value="javascript">
+                    <label class="form-check-label" for="tag_js">JavaScript</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="tag_vue" name="tags" value="vue">
+                    <label class="form-check-label" for="tag_vue">Vue.js</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="tag_react" name="tags" value="react">
+                    <label class="form-check-label" for="tag_react">React</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="tag_html" name="tags" value="html">
+                    <label class="form-check-label" for="tag_html">HTML/CSS</label>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Editor.md 编辑器 -->
+        <div class="mb-4">
+            <label for="content" class="form-label">内容</label>
+            <div id="editor-container">
+                <textarea id="content" name="content" style="display:none;"></textarea>
+            </div>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">发布</button>
+    </form>
+</main>
+
+<!-- 底部备案信息和联系方式 -->
+<footer class="site-footer mt-auto">
+    <div class="bg-gradient text-white py-4">
+        <div class="container">
+            <!-- 备案信息和版权 -->
+            <div class="text-center">
+                    湘ICP备2022002226号-1
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.bootcss.com/jquery/3.6.0/jquery.min.js"></script>
+<!-- Bootstrap Bundle JS -->
+<script src="{% static 'bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/editor.md@1.5.0/editormd.min.js"></script>
+
+<script>
+    $(function() {
+        // 初始化 Editormd
+        var editor = editormd("editor-container", {
+            width: "100%",
+            height: 400,
+            path: "https://cdn.jsdelivr.net/npm/editor.md@1.5.0/lib/",
+            placeholder: "开始撰写博客内容...",
+            // 只显示必要的工具栏按钮
+            toolbarIcons: [
+                "link", "image", "code", "code-block", "table", "|",
+            ],
+            toolbarIconsText: {
+                bold: "粗体",
+                del: "删除线",
+                italic: "斜体",
+                hr: "分割线",
+                link: "链接",
+                image: "图片",
+                code: "行内代码",
+                "code-block": "代码块",
+                table: "表格",
+                watch: "关闭预览",
+                preview: "预览",
+                fullscreen: "全屏",
+                help: "帮助"
+            },
+            toolbar: true,
+            saveHTMLToTextarea: true
+        });
+        
+        // 标签选择限制
+        var maxTags = 3;
+        $('input[name="tags"]').change(function() {
+            var checked = $('input[name="tags"]:checked').length;
+            if (checked > maxTags) {
+                alert('最多只能选择 ' + maxTags + ' 个标签');
+                this.checked = false;
+            }
+        });
+        
+        // 表单提交验证
+        $('#blogForm').submit(function(e) {
+            e.preventDefault();
+            
+            // 获取表单值
+            var title = $('#title').val().trim();
+            var content = editor.getMarkdown().trim();
+            var checkedTags = $('input[name="tags"]:checked');
+            
+            // 验证标题
+            if (!title) {
+                alert('请输入文章标题');
+                $('#title').focus();
+                return false;
+            }
+            
+            // 验证内容
+            if (!content) {
+                alert('请输入文章内容');
+                editor.focus();
+                return false;
+            }
+            
+            // 验证至少选择一个标签
+            if (checkedTags.length === 0) {
+                alert('请至少选择一个标签');
+                return false;
+            }
+            
+            // 验证最多选择3个标签
+            if (checkedTags.length > maxTags) {
+                alert('最多只能选择 ' + maxTags + ' 个标签');
+                return false;
+            }
+            
+            // 可以在这里将编辑器内容同步到textarea
+            editor.previewed(); // 确保内容被同步
+            
+            // 提交表单
+            this.submit();
+        });
+    });
+</script>
+</body>
+</html>

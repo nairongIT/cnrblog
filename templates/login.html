@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% block title %}登录{% endblock %}
+
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+{% endblock %}
+
+
+{% block main %}
+    <div class="login-container">
+        <div class="login-card p-4 bg-white">
+            <h2 class="text-center mb-4">登录</h2>
+
+            <form id="loginForm">
+                {% csrf_token %}
+
+                <!-- 账号/邮箱输入 -->
+                <div class="mb-3">
+                    <label for="username_or_email" class="form-label">账号或邮箱</label>
+                    <span id="username_or_emailError" class="text-danger"></span>
+                    <input type="text" class="form-control" id="username_or_email" name="username_or_email" placeholder="请输入账号或邮箱"
+                           required>
+                </div>
+
+                <!-- 密码输入 -->
+                <div class="mb-3">
+                    <label for="password" class="form-label">密码</label>
+                    <span id="passwordError" class="text-danger"></span>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="请输入密码"
+                           required>
+                </div>
+
+                <!-- 记住我 -->
+                <div class="mb-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="remember" name="remember">
+                        <label class="form-check-label" for="remember">记住我</label>
+                    </div>
+                </div>
+
+                <!-- 登录按钮 -->
+                <div class="d-grid gap-2">
+                    <button id="btnLogin" type="button" class="btn btn-primary btn-lg btn-login">登录</button>
+                </div>
+
+                <div class="text-center mt-3">
+                    <span>还没有账号？</span>
+                    <a href="/register/" class="text-decoration-none">去注册</a>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+
+{% block js %}
+    <script src="{% static 'bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js' %}"></script>
+
+    <script>
+        // 表单提交验证
+        document.getElementById('loginForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+
+            if (!username) {
+                alert('请输入账号或邮箱');
+                document.getElementById('username').focus();
+                return false;
+            }
+
+            if (!password) {
+                alert('请输入密码');
+                document.getElementById('password').focus();
+                return false;
+            }
+
+            // 表单验证通过，提交表单
+            this.submit();
+        });
+    </script>
+
+    <script>
+        $("#btnLogin").click(function () {
+            // 获取表单中的的所有表单数据
+            let formData = $("#loginForm").serializeArray() // 没有获取到值
+            // 发送ajax请求
+            $.ajax({
+                url: "/login/",
+                method: "POST",
+                data: formData,
+                success: function (result) {
+                    // 清除所有错误提示框
+                    $("#loginForm .text-danger").text("");
+                    console.log(result)
+                    if (result['code'] === 200) {
+                        alert('登录成功!')
+                        location.href = "/"
+                    } else {
+                        // 添加到错误提示框,对应key到对应的错误提示框
+                        // 遍历result['msg']，将每个错误添加到对应的错误提示框
+                        for (let key in result['msg']) {
+                            $("#" + key + "Error").text(result['msg'][key][0]);
+                        }
+                    }
+                },
+                fail: function (error) {
+                    alert(error)
+                }
+            })
+        })
+    </script>
+{% endblock %}

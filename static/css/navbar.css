@@ -1,0 +1,150 @@
+/* navbar.css - 导航栏专用样式 */
+
+/* 主容器样式 */
+.site-navbar {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    padding: 0.75rem 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* 导航容器 */
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+/* 导航内容布局 */
+.nav-content {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Logo 样式 */
+.nav-logo {
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: #212529;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.nav-logo:hover {
+    color: #0d6efd;
+}
+
+/* 导航链接 */
+.nav-links {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 1.5rem;
+}
+
+.nav-link {
+    color: #6c757d;
+    text-decoration: none;
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.nav-link:hover {
+    color: #0d6efd;
+    background-color: rgba(13, 110, 253, 0.1);
+}
+
+.nav-link.active {
+    color: #0d6efd;
+    background-color: rgba(13, 110, 253, 0.1);
+}
+
+/* 搜索框 */
+.nav-search {
+    flex: 1;
+    max-width: 300px;
+    margin: 0 1rem;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.5rem 1rem;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    transition: border-color 0.2s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+}
+
+/* 操作按钮 */
+.nav-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.btn-login {
+    padding: 0.5rem 1.25rem;
+    background-color: #0d6efd;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btn-login:hover {
+    background-color: #0b5ed7;
+}
+
+.btn-register {
+    padding: 0.5rem 1.25rem;
+    background-color: transparent;
+    color: #0d6efd;
+    border: 1px solid #0d6efd;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-register:hover {
+    background-color: #0d6efd;
+    color: white;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .nav-content {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .nav-links {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .nav-search {
+        max-width: 100%;
+        margin: 0.5rem 0;
+    }
+
+    .nav-actions {
+        width: 100%;
+        justify-content: center;
+    }
+}

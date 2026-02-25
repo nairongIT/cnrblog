@@ -1,0 +1,45 @@
+/* footer.css - 简洁底部样式 */
+.site-footer {
+    background-color: #697185;
+    color: #0a0a0a;
+    margin-top: auto; /* 确保底部在页面底部 */
+}
+
+.site-footer .bg-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.site-footer .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.site-footer .text-center {
+    text-align: center;
+    padding: 0.5rem 0;
+}
+
+/* 备案信息样式 */
+.icp-info {
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* 鼠标悬停效果 */
+.icp-info:hover {
+    color: white;
+    text-decoration: none;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .site-footer .container {
+        padding: 0 0.5rem;
+    }
+
+    .icp-info {
+        font-size: 0.8rem;
+    }
+}
