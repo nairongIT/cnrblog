@@ -77,10 +77,9 @@ class IndexView(View):
         user_total = User.objects.count()
         today = date.today()
         today_visit_obj, _ = DailyVisitStat.objects.get_or_create(date=today)
-        # 临时性能排查：注释 Redis 去重，直接计数
-        # if should_count_site_visit(request):
-        #     DailyVisitStat.objects.filter(id=today_visit_obj.id).update(visit_count=F('visit_count') + 1)
-        DailyVisitStat.objects.filter(id=today_visit_obj.id).update(visit_count=F('visit_count') + 1)
+        # 今日访问：按 IP 1 小时去重后再计数
+        if should_count_site_visit(request):
+            DailyVisitStat.objects.filter(id=today_visit_obj.id).update(visit_count=F('visit_count') + 1)
         today_visit_obj.refresh_from_db(fields=['visit_count'])
         today_visit_count = today_visit_obj.visit_count
         total_visit_count = DailyVisitStat.objects.aggregate(total=Sum('visit_count'))['total'] or 0
@@ -162,10 +161,10 @@ class ArticleDetailView(View):
 
     def get(self, request, article_id):
         article = self._get_article(article_id)
-        # 临时性能排查：注释 Redis 去重，直接计数
-        # if should_increase_read_count(request, article.id):
-        #     Article.objects.filter(id=article.id).update(read_count=F('read_count') + 1)
-        Article.objects.filter(id=article.id).update(read_count=F('read_count') + 1)
+        # 1 小时限流：登录用户按 user_id，匿名用户按 IP+UA 去重
+        if should_increase_read_count(request, article.id):
+            # F 表达式：在数据库层执行 read_count = read_count + 1，避免并发覆盖
+            Article.objects.filter(id=article.id).update(read_count=F('read_count') + 1)
         # refresh_from_db：把内存中的 article 字段刷新为数据库最新值
         article.refresh_from_db(fields=['read_count'])
         comment_queryset = self._get_comment_queryset(article)
@@ -590,7 +589,6 @@ def create_tag(request):
             'name': tag_obj.name,
         }
     })
-
 
 
 
