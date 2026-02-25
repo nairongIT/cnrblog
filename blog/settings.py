@@ -22,9 +22,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-k0rkh2$ji7a-o#^d0@au(3-ds^i0c3-xm%7!jm*+1-8ml-rn%+'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -62,7 +62,6 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
-            # 鍙互璁╂ā鏉块兘鑷姩load static
             'builtins': [
                 'django.templatetags.static',
             ],
@@ -124,21 +123,20 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 
 # media
 MEDIA_URL = '/media/'
-# 濯掍綋鏂囦欢鐩綍
 MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# 鍙戦€侀偖绠遍厤缃?
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  # 鍙戦€侀偖绠卞悗绔?
-EMAIL_USE_TLS = True  # 鏄惁浣跨敤TLS鍔犲瘑
-EMAIL_HOST = 'smtp.qq.com'  # 鍙戦€侀偖绠变富鏈?
-EMAIL_PORT = 587  # 鍙戦€侀偖绠辩鍙?
-EMAIL_HOST_USER = '2331650385@qq.com'  # 鍙戦€侀偖绠辩敤鎴峰悕
-EMAIL_HOST_PASSWORD = 'xstfedcneisidjfd'  # 鍙戦€侀偖绠辨巿鏉冪爜锛佷笉鏄疩Q瀵嗙爜
-DEFAULT_FROM_EMAIL = '2331650385@qq.com'  # 榛樿鍙戦€侀偖绠?
 
-# 鑷畾涔夌敤鎴锋ā鍨?
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.qq.com'
+EMAIL_PORT = 587  #
+EMAIL_HOST_USER = '2331650385@qq.com'
+EMAIL_HOST_PASSWORD = 'xstfedcneisidjfd'
+DEFAULT_FROM_EMAIL = '2331650385@qq.com'
+
+
 AUTH_USER_MODEL = 'app01.User'
 # Redis（用于阅读量去重限流）
 REDIS_HOST = '127.0.0.1'
