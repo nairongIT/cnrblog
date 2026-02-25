@@ -10,7 +10,7 @@ from django.core.files.storage import default_storage
 from django.core.paginator import Paginator
 from django.db.models import Count, ExpressionWrapper, F, IntegerField, Q, Sum
 from django.db.models.functions import TruncDate
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.http import HttpResponseForbidden
 
@@ -27,75 +27,75 @@ from app01.utils.site_visit_limiter import should_count_site_visit
 
 class IndexView(View):
     def get(self, request):
-        # # 搜索关键词（标题/正文）
-        # search_keyword = request.GET.get('q', '').strip()
-        # # 标签过滤参数
-        # tag_id = request.GET.get('tag', '').strip()
-        #
-        # # 文章基础查询：仅展示未删除且已发布的文章，按发布时间倒序
-        # article_queryset = Article.objects.filter(
-        #     is_delete=False,
-        #     status=1,
-        # ).select_related('user').order_by('-create_time')
-        #
-        # if search_keyword:
-        #     article_queryset = article_queryset.filter(
-        #         Q(title__icontains=search_keyword) | Q(content__icontains=search_keyword)
-        #     )
-        #
-        # selected_tag = None
-        # if tag_id.isdigit():
-        #     selected_tag = Tag.objects.filter(id=int(tag_id)).first()
-        #     if selected_tag:
-        #         article_queryset = article_queryset.filter(tags=selected_tag)
-        #
-        # # 多对多筛选后去重，避免同一文章重复显示
-        # article_queryset = article_queryset.distinct()
-        #
-        # # 热门标签：按关联文章数排序
-        # hot_tags = Tag.objects.annotate(
-        #     article_total=Count(
-        #         'articles',
-        #         filter=Q(articles__is_delete=False, articles__status=1),
-        #         distinct=True,
-        #     )
-        # ).filter(article_total__gt=0).order_by('-article_total', 'name')[:12]
-        #
-        # # 热门文章 Top5：按 read_count + comment_count * 2 排序
-        # hot_articles = Article.objects.filter(
-        #     is_delete=False,
-        #     status=1,
-        # ).annotate(
-        #     hot_score=ExpressionWrapper(
-        #         F('read_count') + F('comment_count') * 2,
-        #         output_field=IntegerField(),
-        #     )
-        # ).order_by('-hot_score', '-create_time')[:5]
-        #
-        # # 站点统计
-        # article_total = Article.objects.filter(is_delete=False, status=1).count()
-        # user_total = User.objects.count()
-        # today = date.today()
-        # today_visit_obj, _ = DailyVisitStat.objects.get_or_create(date=today)
-        # # 今日访问：按 IP 1 小时去重后再计数
-        # if should_count_site_visit(request):
-        #     DailyVisitStat.objects.filter(id=today_visit_obj.id).update(visit_count=F('visit_count') + 1)
-        # today_visit_obj.refresh_from_db(fields=['visit_count'])
-        # today_visit_count = today_visit_obj.visit_count
-        # total_visit_count = DailyVisitStat.objects.aggregate(total=Sum('visit_count'))['total'] or 0
-        #
-        # # Paginator：分页器，每页 6 条
-        # paginator = Paginator(article_queryset, 6)
-        # # GET 参数 page 指定页码，不合法时自动回退为第一页
-        # page_obj = paginator.get_page(request.GET.get('page', 1))
-        #
-        # # 分页时保留除 page 之外的查询参数（如 q/tag）
-        # query_params = request.GET.copy()
-        # query_params.pop('page', None)
-        # querystring = query_params.urlencode()
-        #
-        # return render(request, 'index.html', locals())
-        return HttpResponse("hello")
+        # 搜索关键词（标题/正文）
+        search_keyword = request.GET.get('q', '').strip()
+        # 标签过滤参数
+        tag_id = request.GET.get('tag', '').strip()
+
+        # 文章基础查询：仅展示未删除且已发布的文章，按发布时间倒序
+        article_queryset = Article.objects.filter(
+            is_delete=False,
+            status=1,
+        ).select_related('user').order_by('-create_time')
+
+        if search_keyword:
+            article_queryset = article_queryset.filter(
+                Q(title__icontains=search_keyword) | Q(content__icontains=search_keyword)
+            )
+
+        selected_tag = None
+        if tag_id.isdigit():
+            selected_tag = Tag.objects.filter(id=int(tag_id)).first()
+            if selected_tag:
+                article_queryset = article_queryset.filter(tags=selected_tag)
+
+        # 多对多筛选后去重，避免同一文章重复显示
+        article_queryset = article_queryset.distinct()
+
+        # 热门标签：按关联文章数排序
+        hot_tags = Tag.objects.annotate(
+            article_total=Count(
+                'articles',
+                filter=Q(articles__is_delete=False, articles__status=1),
+                distinct=True,
+            )
+        ).filter(article_total__gt=0).order_by('-article_total', 'name')[:12]
+
+        # 热门文章 Top5：按 read_count + comment_count * 2 排序
+        hot_articles = Article.objects.filter(
+            is_delete=False,
+            status=1,
+        ).annotate(
+            hot_score=ExpressionWrapper(
+                F('read_count') + F('comment_count') * 2,
+                output_field=IntegerField(),
+            )
+        ).order_by('-hot_score', '-create_time')[:5]
+
+        # 站点统计
+        article_total = Article.objects.filter(is_delete=False, status=1).count()
+        user_total = User.objects.count()
+        today = date.today()
+        today_visit_obj, _ = DailyVisitStat.objects.get_or_create(date=today)
+        # 今日访问：按 IP 1 小时去重后再计数
+        if should_count_site_visit(request):
+            DailyVisitStat.objects.filter(id=today_visit_obj.id).update(visit_count=F('visit_count') + 1)
+        today_visit_obj.refresh_from_db(fields=['visit_count'])
+        today_visit_count = today_visit_obj.visit_count
+        total_visit_count = DailyVisitStat.objects.aggregate(total=Sum('visit_count'))['total'] or 0
+
+        # Paginator：分页器，每页 6 条
+        paginator = Paginator(article_queryset, 6)
+        # GET 参数 page 指定页码，不合法时自动回退为第一页
+        page_obj = paginator.get_page(request.GET.get('page', 1))
+
+        # 分页时保留除 page 之外的查询参数（如 q/tag）
+        query_params = request.GET.copy()
+        query_params.pop('page', None)
+        querystring = query_params.urlencode()
+
+        return render(request, 'index.html', locals())
+
 
 class ArticleDetailView(View):
     @staticmethod
