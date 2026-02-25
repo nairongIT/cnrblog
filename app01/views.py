@@ -1,4 +1,5 @@
-﻿import json
+﻿# 标准库模块
+import json
 import hashlib
 from datetime import date, timedelta
 from uuid import uuid4
